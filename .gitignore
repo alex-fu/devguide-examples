@@ -2,3 +2,5 @@ java/.idea
 python/.idea
 java/devguide.iml
 java/target
+.idea/
+node_modules/

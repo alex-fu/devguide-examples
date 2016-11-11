@@ -24,30 +24,30 @@
 //
 //  package.json File, save and include separately
 /*
-{
-  "name": "nodejs",
-  "version": "1.0.0",
-  "description": "Test Application Codebook",
-  "main": "bulk.js",
-  "scripts": {
-       "start": "node bulk.js"
-  },
-  "author": "todd@couchbase.com",
-  "license": "ISC",
-  "dependencies": {
-    "couchbase": "^2.2.3"
-  }
-}
-*/
+ {
+ "name": "nodejs",
+ "version": "1.0.0",
+ "description": "Test Application Codebook",
+ "main": "bulk.js",
+ "scripts": {
+ "start": "node bulk.js"
+ },
+ "author": "todd@couchbase.com",
+ "license": "ISC",
+ "dependencies": {
+ "couchbase": "^2.2.3"
+ }
+ }
+ */
 
 'use strict';
 
 // Key for example
-var connString='couchbase://localhost';
-var opsGroup=1000;
-var totalDocs=10000;
-var documentSize=2048;
-var getMultiArray=[];
+var connString = 'couchbase://localhost';
+var opsGroup = 1000;
+var totalDocs = 10000;
+var documentSize = 2048;
+var getMultiArray = [];
 
 // Require Couchbase Module
 var couchbase = require('couchbase');
@@ -119,7 +119,7 @@ function preload() {
                             fieldType: "url",
                             lastEdited: Date(),
                             rev: 0
-                        }, function(err, res) {
+                        }, function (err, res) {
                             if (err) reject(err);
 
                             // This will fire WHEN and only WHEN a callback is received.
@@ -134,6 +134,7 @@ function preload() {
                     }
                 }
             }
+
             // The loop that sets up a "buffer" of queued operations
             // This sets up a number of requests always in the buffer waiting to execute
             for (var i = 0; i < opsGroup; ++i) {
@@ -149,7 +150,7 @@ function bulkGetMulti() {
         // This is the only bulk method exposed by the nodejs SDK.   This method
         // takes an array of keys, and returns a map of json documents for all
         // documents retrieved.   It will fire a callback when completed.
-        bucket.getMulti(getMultiArray, function(err, res) {
+        bucket.getMulti(getMultiArray, function (err, res) {
             if (err) {
                 console.console.log("  Error:", error);
             }
@@ -167,102 +168,104 @@ function bulkGetMulti() {
     });
 }
 
-function bulkGetAsyncPattern(){
-  return new Promise(
-      (resolve, reject) => {
+function bulkGetAsyncPattern() {
+    return new Promise(
+        (resolve, reject) => {
 
-          var completed = 0;
-          var runFlag = false;
-          var startTime = process.hrtime();
+            var completed = 0;
+            var runFlag = false;
+            var startTime = process.hrtime();
 
-          // Function for modify one document, during bulk loop.  Notice,
-          // this is only in scope for bulkGetAsyncPattern
-          function getOne() {
+            // Function for modify one document, during bulk loop.  Notice,
+            // this is only in scope for bulkGetAsyncPattern
+            function getOne() {
 
-              // First Check if the bulk pattern loop is done
-              if (completed >= totalDocs && !runFlag) {
-                  runFlag = true;
-                  var time = process.hrtime(startTime);
-                  console.log("====");
-                  console.log("  Bulk Pattern Get Loop Took: " + parseInt((time[0] * 1000) +
-                          (time[1] / 1000000)) + " ms for: " + getMultiArray.length +
-                      " items");
-                  resolve();
-              } else {
-                  if (completed <= totalDocs) {
+                // First Check if the bulk pattern loop is done
+                if (completed >= totalDocs && !runFlag) {
+                    runFlag = true;
+                    var time = process.hrtime(startTime);
+                    console.log("====");
+                    console.log("  Bulk Pattern Get Loop Took: " + parseInt((time[0] * 1000) +
+                            (time[1] / 1000000)) + " ms for: " + getMultiArray.length +
+                        " items");
+                    resolve();
+                } else {
+                    if (completed <= totalDocs) {
 
-                      // Modify One Document
-                      bucket.get(getMultiArray[completed], function(err, res) {
-                          if (err) console.log("  Error Retrieving:", err.message);
+                        // Modify One Document
+                        bucket.get(getMultiArray[completed], function (err, res) {
+                            if (err) console.log("  Error Retrieving:", err.message);
 
-                          // This will fire WHEN and only WHEN a callback is received.
-                          if (res) {
-                              // Increment completed count
-                              completed++;
+                            // This will fire WHEN and only WHEN a callback is received.
+                            if (res) {
+                                // Increment completed count
+                                completed++;
 
-                              // Recursive call to modify
-                              getOne();
-                          }
-                      });
-                  }
-              }
-          }
-          // The loop that sets up a "buffer" of queued operations
-          // This sets up a number of requests always in the buffer waiting to execute
-          for (var i = 0; i < opsGroup; ++i) {
-              getOne();
-          }
-      });
+                                // Recursive call to modify
+                                getOne();
+                            }
+                        });
+                    }
+                }
+            }
+
+            // The loop that sets up a "buffer" of queued operations
+            // This sets up a number of requests always in the buffer waiting to execute
+            for (var i = 0; i < opsGroup; ++i) {
+                getOne();
+            }
+        });
 }
 
-function bulkUpdateAsyncPattern(){
-  return new Promise(
-      (resolve, reject) => {
+function bulkUpdateAsyncPattern() {
+    return new Promise(
+        (resolve, reject) => {
 
-          var completed = 0;
-          var runFlag = false;
-          var startTime = process.hrtime();
+            var completed = 0;
+            var runFlag = false;
+            var startTime = process.hrtime();
 
-          // Function for modify one document, during bulk loop.  Notice,
-          // this is only in scope for bulkUpdateAsyncPattern
-          function modifyOne() {
+            // Function for modify one document, during bulk loop.  Notice,
+            // this is only in scope for bulkUpdateAsyncPattern
+            function modifyOne() {
 
-              // First Check if the bulk pattern loop is done
-              if (completed >= totalDocs && !runFlag) {
-                  runFlag = true;
-                  var time = process.hrtime(startTime);
-                  console.log("====");
-                  console.log("  Bulk Pattern Processing Loop Took: " + parseInt((time[0] * 1000) +
-                          (time[1] / 1000000)) + " ms for: " + getMultiArray.length +
-                      " items");
-                  resolve();
-              } else {
-                  if (completed <= totalDocs) {
+                // First Check if the bulk pattern loop is done
+                if (completed >= totalDocs && !runFlag) {
+                    runFlag = true;
+                    var time = process.hrtime(startTime);
+                    console.log("====");
+                    console.log("  Bulk Pattern Processing Loop Took: " + parseInt((time[0] * 1000) +
+                            (time[1] / 1000000)) + " ms for: " + getMultiArray.length +
+                        " items");
+                    resolve();
+                } else {
+                    if (completed <= totalDocs) {
 
-                      // Modify One Document
-                      bucket.mutateIn('test' + completed, 0, 0)
-                      .counter('rev', 1, false)
-                      .execute( function(err, res) {
-                          if (err) console.log("  Error modifying:", err.message);
+                        // Modify One Document
+                        bucket.mutateIn('test' + completed, 0, 0)
+                            .counter('rev', 1, false)
+                            .execute(function (err, res) {
+                                if (err) console.log("  Error modifying:", err.message);
 
-                          // This will fire WHEN and only WHEN a callback is received.
-                          if (res) {
-                              // Increment completed count
-                              completed++;
+                                // This will fire WHEN and only WHEN a callback is received.
+                                if (res) {
+                                    // Increment completed count
+                                    completed++;
 
-                              // Recursive call to modify
-                              modifyOne();
-                          }
-                      });
-                  }
-              }
-          }
-          // The loop that sets up a "buffer" of queued operations
-          // This sets up a number of requests always in the buffer waiting to execute
-          for (var i = 0; i < opsGroup; ++i) {
-              modifyOne();
-          }
-      });
+                                    // Recursive call to modify
+                                    modifyOne();
+                                }
+                            });
+                    }
+                }
+            }
+
+            // The loop that sets up a "buffer" of queued operations
+            // This sets up a number of requests always in the buffer waiting to execute
+            for (var i = 0; i < opsGroup; ++i) {
+                modifyOne();
+            }
+        });
 }
 
 // Generate Random Characters to document field size

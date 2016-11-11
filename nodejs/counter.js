@@ -5,7 +5,7 @@ var couchbase = require('couchbase');
 var cluster = new couchbase.Cluster('couchbase://127.0.0.1');
 
 // Setup Bucket object to be reused within the code
-var bucket = cluster.openBucket('travel-sample');
+var bucket = cluster.openBucket('default');
 
 // Setup a new key, initialize as 10, add 2, and retreive it
 var key = "nodeDevguideExampleCounter";
